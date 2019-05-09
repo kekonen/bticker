@@ -1,4 +1,5 @@
 extern crate reqwest;
+use std::env;
 use serde::{Deserialize};
 
 #[derive(Debug, Deserialize)]
@@ -8,10 +9,17 @@ struct Price {
 }
 
 fn main() {
-    match get_latest_price("BTCUSDT") {
-        Some(price) => println!("{}", price),
-        None => println!("Kek!"),
-    }
+    let args: Vec<String> = env::args().collect();
+    match args.len() {
+        1 => println!("Provide argument"),
+        _ => {
+            match get_latest_price(&args[1]) {
+                Some(price) => println!("{}", price),
+                None => println!("Kek!"),
+            }
+        }
+    };
+
 }
 
 fn get_latest_price(symbol: &str) -> Option<f32> {
