@@ -13,7 +13,8 @@ fn main() {
     match args.len() {
         1 => println!("Provide argument"),
         _ => {
-            match get_latest_price(&args[1]) {
+            let ticker = (&args[1]).to_uppercase();
+            match get_latest_price(&ticker) {
                 Some(price) => println!("{}", price),
                 None => println!("Kek!"),
             }
