@@ -8,15 +8,19 @@ struct Price {
     price: String,
 }
 
+// Example cargo run BTCUSDT LTCUSDT | cut -d : -f 2
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     match args.len() {
         1 => println!("Provide argument"),
         _ => {
-            let ticker = (&args[1]).to_uppercase();
-            match get_latest_price(&ticker) {
-                Some(price) => println!("{}", price),
-                None => println!("Kek!"),
+            for ticker in &args[1..] {
+                let ticker = (ticker).to_uppercase();
+                match get_latest_price(&ticker) {
+                    Some(price) => println!("{}: {}", ticker, price),
+                    None => println!("Kek!"),
+                }
             }
         }
     };
