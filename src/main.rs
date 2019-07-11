@@ -29,20 +29,19 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
-        println!("Provide argument");
-        return
+        panic!("Provide argument");
     }
 
     let work = stream::iter_ok(args.into_iter().skip(1))
         .map(move |ticker| {
             let uri = format!("https://api.binance.com/api/v3/avgPrice?symbol={}", (ticker).to_uppercase()).parse::<Uri>().unwrap();
-            return client.get(uri)
+            client.get(uri)
             .and_then(|res| {
                 res.into_body().concat2()
             })
             .and_then(move |body| {
                 let price: Price = serde_json::from_slice(&(body)).unwrap();
-                return Ok(((ticker).to_uppercase(), price))
+                Ok(((ticker).to_uppercase(), price))
             })
         })
         .buffer_unordered(5)
