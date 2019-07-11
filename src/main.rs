@@ -7,11 +7,6 @@ use hyper::Client;
 use hyper_tls::HttpsConnector;
 
 use futures::{stream, Future, Stream}; // 0.1.25
-// use hyper::Client; // 0.12.23
-use std::{
-    io::{self, Write},
-    iter,
-};
 
 use hyper::http::Uri;
 use tokio; // 0.1.15
