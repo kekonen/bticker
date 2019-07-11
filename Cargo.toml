@@ -5,8 +5,12 @@ authors = ["Daniil Naumetc <daniil.naumetc@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-reqwest = "0.9.6"
 serde = { version = "1.0", features = ["derive"] }
+futures = "0.1.28"
+hyper = "0.12.32"
+tokio = "0.1.22"
+hyper-tls = "0.3.2"
+serde_json = "1.0.40"
 
 # serde_json is just for the example, not required in general
 # serde_json = "1.0"

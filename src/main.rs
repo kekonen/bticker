@@ -1,4 +1,21 @@
-extern crate reqwest;
+// extern crate reqwest;
+extern crate hyper;
+extern crate hyper_tls;
+extern crate serde_json;
+
+use hyper::Client;
+use hyper_tls::HttpsConnector;
+
+use futures::{stream, Future, Stream}; // 0.1.25
+// use hyper::Client; // 0.12.23
+use std::{
+    io::{self, Write},
+    iter,
+};
+
+use hyper::http::Uri;
+use tokio; // 0.1.15
+
 use std::env;
 use serde::{Deserialize};
 
@@ -11,39 +28,36 @@ struct Price {
 // Example cargo run BTCUSDT LTCUSDT | cut -d : -f 2
 
 fn main() {
+    let https = HttpsConnector::new(4).expect("TLS initialization failed");
+    let client = Client::builder()
+        .build::<_, hyper::Body>(https);
     let args: Vec<String> = env::args().collect();
-    match args.len() {
-        1 => println!("Provide argument"),
-        _ => {
-            for ticker in &args[1..] {
-                let ticker = (ticker).to_uppercase();
-                match get_latest_price(&ticker) {
-                    Some(price) => println!("{}: {}", ticker, price),
-                    None => println!("Kek!"),
-                }
-            }
-        }
-    };
+
+    if args.len() < 2 {
+        println!("Provide argument");
+        return
+    }
+
+    let work = stream::iter_ok(args.into_iter().skip(1))
+        .map(move |ticker| {
+            let uri = format!("https://api.binance.com/api/v3/avgPrice?symbol={}", (ticker).to_uppercase()).parse::<Uri>().unwrap();
+            return client.get(uri)
+            .and_then(|res| {
+                res.into_body().concat2()
+            })
+            .and_then(move |body| {
+                let price: Price = serde_json::from_slice(&(body)).unwrap();
+                return Ok(((ticker).to_uppercase(), price))
+            })
+        })
+        .buffer_unordered(5)
+        .for_each(|(t, price)| {
+            println!("{}: {}", t, price.price);
+            Ok(())
+        })
+        .map_err(|e| panic!("Error making request: {}", e));
+
+    tokio::run(work);
 
 }
 
-fn get_latest_price(symbol: &str) -> Option<f32> {
-    let url = format!("https://api.binance.com/api/v3/avgPrice?symbol={}", symbol);
-    match reqwest::get(&url){
-        Ok(mut response) => {
-            match response.json::<Price>() {
-                Ok(json) => {
-                    //println!("{:?}", json.price);
-                    //return Some(3.12);
-                    match json.price.parse::<f32>() {
-                        Ok(p) => return Some(p),
-                        _ => return None,
-                    };
-                },
-                _ => return None,
-            };
-        },
-        _ => return None,
-    };
-    //return Some(json.price.parse().unwrap());
-}
