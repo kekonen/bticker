@@ -1,4 +1,4 @@
-import subprocess, sys, os
+import subprocess, sys
 from pathlib import Path
 wallet = dict([[curr + 'USDT', float(amount)] for curr, amount in [arg.split('=') for arg in sys.argv[1:]]])
 stdout, _ = subprocess.Popen([str(Path(__file__).parent.absolute() / 'target/release/bticker')] + list(wallet.keys()) ,stdout=subprocess.PIPE).communicate()
