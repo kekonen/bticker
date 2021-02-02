@@ -20,7 +20,9 @@ struct Price {
     price: String,
 }
 
-// Example cargo run BTCUSDT LTCUSDT | cut -d : -f 2
+// Examples:
+// bticker BTCUSDT LTCUSDT | cut -d : -f 2
+// bticker BTCUSDT ETHUSDT DOTBTC LINKBTC | sort | tr '\n' '|'
 
 fn get_precision(pr: i32, v: &f32) -> f32 {
     let log10 = v.log10().ceil() as i32;
