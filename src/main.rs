@@ -22,6 +22,37 @@ struct Price {
 
 // Example cargo run BTCUSDT LTCUSDT | cut -d : -f 2
 
+fn get_precision(pr: i32, v: &f32) -> f32 {
+    let log10 = v.log10().ceil() as i32;
+    // println!("v: {}, pr: {}, log10: {}", v , pr, log10);
+    let new_pr = (log10-pr) as f32;
+    // println!("new_pr: {}", new_pr);
+    let modder = 10_f32.powf(new_pr);
+    // println!("modder: {}", modder);
+    let vdiff = v%modder;
+    // println!(" vdff: {}", vdiff);
+    // println!("v: {}, pr: {}, log10: {}, new_pr: {}, modder: {}, vdff: {}", v , pr, log10, new_pr, modder, vdiff);
+    let mut result = v-vdiff;
+    // println!("{} >0.0 {}",result,result > 1_f32);
+    if result < 1_f32 {
+        let multiplier = 10_f32.powf(-new_pr);
+        // println!("x={}", result * multiplier);
+        result = (result * multiplier).round()/multiplier;
+    } 
+    // println!("result: {}", result);//, :.prec$ prec=new_pr as usize);
+    return result
+}
+
+fn format_price(x: f32) -> String {
+    if x >= 10000.0 {
+        format!("{}", get_precision(5, &x))
+    } else if x >= 10.0 {
+        format!("{}", get_precision(4, &x))
+    } else {
+        format!("{}", get_precision(3, &x))
+    }
+}
+
 fn main() {
     let https = HttpsConnector::new(4).expect("TLS initialization failed");
     let client = Client::builder()
@@ -46,7 +77,7 @@ fn main() {
         })
         .buffer_unordered(5)
         .for_each(|(t, price)| {
-            println!("{}: {}", t, price.price);
+            println!("{}: {}", t, format_price(price.price.parse::<f32>().unwrap()));
             Ok(())
         })
         .map_err(|e| panic!("Error making request: {}", e));
